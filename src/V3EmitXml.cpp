@@ -166,8 +166,11 @@ class EmitXmlFileVisitor final : public AstNVisitor {
     virtual void visit(AstPin* nodep) override {
         // What we call a pin in verilator is a port in the IEEE spec.
         outputTag(nodep, "port");  // IEEE: vpiPort
-        if (nodep->modVarp()->isIO()) {
-            puts(" direction=\"" + nodep->modVarp()->direction().xmlKwd() + "\"");
+        if (!v3Global.opt.xmlOnly()
+            || !v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+            if (nodep->modVarp()->isIO()) {
+                puts(" direction=\"" + nodep->modVarp()->direction().xmlKwd() + "\"");
+            }
         }
         puts(" portIndex=\"" + cvtToStr(nodep->pinNum()) + "\"");  // IEEE: vpiPortIndex
         // Children includes vpiHighConn and vpiLowConn; we don't support port bits (yet?)

@@ -601,6 +601,14 @@ class ParamProcessor final {
 
     void cellInterfaceCleanup(AstCell* nodep, AstNodeModule* srcModp, string& longnamer,
                               bool& any_overridesr, IfaceRefRefs& ifaceRefRefs) {
+
+        if (VN_IS(srcModp, NotFoundModule)) {
+            if (v3Global.opt.xmlOnly()
+                && v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+                return;
+            }
+        }
+
         for (AstPin* pinp = nodep->pinsp(); pinp; pinp = VN_CAST(pinp->nextp(), Pin)) {
             AstVar* modvarp = pinp->modVarp();
             if (modvarp->isIfaceRef()) {

@@ -1130,6 +1130,8 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 m_xInitialEdge = flag;
             } else if (onoff(sw, "-xml-only", flag /*ref*/)) {
                 m_xmlOnly = flag;
+            } else if (onoff(sw, "-xml-write-not-found-module-instance-ports", flag /*ref*/)) {
+                m_xmlWriteNotFoundModuleInstancePorts = flag; // effective only when --xml-only is specified
             } else {
                 hadSwitchPart1 = false;
             }

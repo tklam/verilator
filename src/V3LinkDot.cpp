@@ -1967,8 +1967,11 @@ private:
             m_cellp = nodep;
             if (VN_IS(nodep->modp(), NotFoundModule)) {
                 // Prevent warnings about missing pin connects
-                if (nodep->pinsp()) nodep->pinsp()->unlinkFrBackWithNext()->deleteTree();
-                if (nodep->paramsp()) nodep->paramsp()->unlinkFrBackWithNext()->deleteTree();
+                if (!v3Global.opt.xmlOnly()
+                    || !v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+                    if (nodep->pinsp()) nodep->pinsp()->unlinkFrBackWithNext()->deleteTree();
+                    if (nodep->paramsp()) nodep->paramsp()->unlinkFrBackWithNext()->deleteTree();
+                }
             }
             // Need to pass the module info to this cell, so we can link up the pin names
             // However can't use m_curSymp as pin connections need to use the
