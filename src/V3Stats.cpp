@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2005-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2005-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -34,7 +34,7 @@ class StatsVisitor final : public AstNVisitor {
 private:
     // NODE STATE/TYPES
 
-    typedef std::map<const string, int> NameMap;  // Number of times a name appears
+    using NameMap = std::map<const std::string, int>;  // Number of times a name appears
 
     // STATE
     string m_stage;  // Name of the stage we are scanning

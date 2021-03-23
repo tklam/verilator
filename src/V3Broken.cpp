@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -41,7 +41,7 @@ class BrokenTable VL_NOT_FINAL : public AstNVisitor {
 private:
     // MEMBERS
     //   For each node, we keep if it exists or not.
-    typedef std::unordered_map<const AstNode*, int> NodeMap;  // Performance matters (when --debug)
+    using NodeMap = std::unordered_map<const AstNode*, int>;  // Performance matters (when --debug)
     static NodeMap s_nodes;  // Set of all nodes that exist
     // BITMASK
     enum { FLAG_ALLOCATED = 0x01 };  // new() and not delete()ed

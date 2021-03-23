@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2004-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2004-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -55,7 +55,7 @@ class EmitXmlFileVisitor final : public AstNVisitor {
 
     // XML methods
     void outputId(AstNode* nodep) {
-        if (!nodep->user1()) { nodep->user1(++m_id); }
+        if (!nodep->user1()) nodep->user1(++m_id);
         puts("\"" + cvtToStr(nodep->user1()) + "\"");
     }
     void outputTag(AstNode* nodep, const string& tagin) {
@@ -151,6 +151,7 @@ class EmitXmlFileVisitor final : public AstNVisitor {
         }
         if (nodep->attrClockEn()) puts(" clock_enable=\"true\"");
         if (nodep->attrIsolateAssign()) puts(" isolate_assignments=\"true\"");
+        if (nodep->isLatched()) puts(" latched=\"true\"");
         if (nodep->isSigPublic()) puts(" public=\"true\"");
         if (nodep->isSigUserRdPublic()) puts(" public_flat_rd=\"true\"");
         if (nodep->isSigUserRWPublic()) puts(" public_flat_rw=\"true\"");
@@ -338,7 +339,7 @@ private:
         }
     }
     virtual void visit(AstCell* nodep) override {
-        if (nodep->modp()->dead()) { return; }
+        if (nodep->modp()->dead()) return;
         if (!m_hasChildren) m_os << ">\n";
         m_os << "<cell " << nodep->fileline()->xml() << " "
              << nodep->fileline()->xmlDetailedLocation() << " name=\"" << nodep->name() << "\""

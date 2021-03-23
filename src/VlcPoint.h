@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -14,8 +14,8 @@
 //
 //*************************************************************************
 
-#ifndef _VLCPOINT_H_
-#define _VLCPOINT_H_ 1
+#ifndef VERILATOR_VLCPOINT_H_
+#define VERILATOR_VLCPOINT_H_
 
 #include "config_build.h"
 #include "verilatedos.h"
@@ -93,15 +93,15 @@ public:
 class VlcPoints final {
 private:
     // MEMBERS
-    typedef std::map<const string, vluint64_t> NameMap;  // Sorted by name (ordered)
+    using NameMap = std::map<const std::string, vluint64_t>;  // Sorted by name (ordered)
     NameMap m_nameMap;  //< Name to point-number
     std::vector<VlcPoint> m_points;  //< List of all points
     vluint64_t m_numPoints = 0;  //< Total unique points
 
 public:
     // ITERATORS
-    typedef NameMap ByName;
-    typedef ByName::iterator iterator;
+    using ByName = NameMap;
+    using iterator = ByName::iterator;
     ByName::iterator begin() { return m_nameMap.begin(); }
     ByName::iterator end() { return m_nameMap.end(); }
 

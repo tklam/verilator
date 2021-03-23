@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -14,10 +14,10 @@
 //
 //*************************************************************************
 
-#ifndef _V3ASTNODES_H_
-#define _V3ASTNODES_H_ 1
+#ifndef VERILATOR_V3ASTNODES_H_
+#define VERILATOR_V3ASTNODES_H_
 
-#ifndef _V3AST_H_
+#ifndef VERILATOR_V3AST_H_
 #error "Use V3Ast.h as the include"
 #endif
 
@@ -296,7 +296,7 @@ public:
 
 class AstClass final : public AstNodeModule {
     // TYPES
-    typedef std::map<const string, AstNode*> MemberNameMap;
+    using MemberNameMap = std::map<const std::string, AstNode*>;
     // MEMBERS
     MemberNameMap m_members;  // Members or method children
     AstClassPackage* m_classOrPackagep = nullptr;  // Class package this is under
@@ -539,8 +539,8 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
-        if (m_keyDTypep && m_keyDTypep->clonep()) { m_keyDTypep = m_keyDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
+        if (m_keyDTypep && m_keyDTypep->clonep()) m_keyDTypep = m_keyDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstAssocArrayDType* asamep = static_cast<const AstAssocArrayDType*>(samep);
@@ -641,7 +641,7 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstAssocArrayDType* asamep = static_cast<const AstAssocArrayDType*>(samep);
@@ -760,7 +760,7 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstNodeArrayDType* asamep = static_cast<const AstNodeArrayDType*>(samep);
@@ -971,7 +971,7 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstConstDType* sp = static_cast<const AstConstDType*>(samep);
@@ -1140,7 +1140,7 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstQueueDType* asamep = static_cast<const AstQueueDType*>(samep);
@@ -1217,8 +1217,8 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_typedefp && m_typedefp->clonep()) { m_typedefp = m_typedefp->clonep(); }
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_typedefp && m_typedefp->clonep()) m_typedefp = m_typedefp->clonep();
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstRefDType* asamep = static_cast<const AstRefDType*>(samep);
@@ -1486,7 +1486,7 @@ public:
         return nullptr;
     }
     virtual void cloneRelink() override {
-        if (m_refDTypep && m_refDTypep->clonep()) { m_refDTypep = m_refDTypep->clonep(); }
+        if (m_refDTypep && m_refDTypep->clonep()) m_refDTypep = m_refDTypep->clonep();
     }
     virtual bool same(const AstNode* samep) const override {
         const AstEnumDType* sp = static_cast<const AstEnumDType*>(samep);
@@ -1595,8 +1595,8 @@ public:
     virtual bool same(const AstNode* samep) const override { return true; }
     virtual int instrCount() const override { return widthInstrs(); }
     // Special operators
-    static AstNode*
-    baseFromp(AstNode* nodep);  ///< What is the base variable (or const) this dereferences?
+    // Return base var (or const) nodep dereferences
+    static AstNode* baseFromp(AstNode* nodep, bool overMembers);
 };
 
 class AstAssocSel final : public AstNodeSel {
@@ -1949,6 +1949,7 @@ private:
     bool m_noSubst : 1;  // Do not substitute out references
     bool m_overridenParam : 1;  // Overridden parameter by #(...) or defparam
     bool m_trace : 1;  // Trace this variable
+    bool m_isLatched : 1;  // Not assigned in all control paths of combo always
     VLifetime m_lifetime;  // Lifetime
     VVarAttrClocker m_attrClocker;
     MTaskIdSet m_mtaskIds;  // MTaskID's that read or write this var
@@ -1976,6 +1977,7 @@ private:
         m_attrSFormat = false;
         m_attrSplitVar = false;
         m_fileDescr = false;
+        m_isRand = false;
         m_isConst = false;
         m_isStatic = false;
         m_isPulldown = false;
@@ -1988,6 +1990,7 @@ private:
         m_noSubst = false;
         m_overridenParam = false;
         m_trace = false;
+        m_isLatched = false;
         m_attrClocker = VVarAttrClocker::CLOCKER_UNKNOWN;
     }
 
@@ -2044,7 +2047,7 @@ public:
         , m_origName{name} {
         init();
         combineType(type);
-        if (examplep->childDTypep()) { childDTypep(examplep->childDTypep()->cloneTree(true)); }
+        if (examplep->childDTypep()) childDTypep(examplep->childDTypep()->cloneTree(true));
         dtypeFrom(examplep);
         m_declKwd = examplep->declKwd();
     }
@@ -2145,6 +2148,7 @@ public:
     void overriddenParam(bool flag) { m_overridenParam = flag; }
     bool overriddenParam() const { return m_overridenParam; }
     void trace(bool flag) { m_trace = flag; }
+    void isLatched(bool flag) { m_isLatched = flag; }
     // METHODS
     virtual void name(const string& name) override { m_name = name; }
     virtual void tag(const string& text) override { m_tag = text; }
@@ -2166,7 +2170,7 @@ public:
         return ((isIO() || isSignal())
                 && (isIO() || isBitLogic())
                 // Wrapper would otherwise duplicate wrapped module's coverage
-                && !isSc() && !isPrimaryIO() && !isConst());
+                && !isSc() && !isPrimaryIO() && !isConst() && !isDouble() && !isString());
     }
     bool isClassMember() const { return varType() == AstVarType::MEMBER; }
     bool isStatementTemp() const { return (varType() == AstVarType::STMTTEMP); }
@@ -2198,6 +2202,7 @@ public:
     bool isRand() const { return m_isRand; }
     bool isConst() const { return m_isConst; }
     bool isStatic() const { return m_isStatic; }
+    bool isLatched() const { return m_isLatched; }
     bool isFuncLocal() const { return m_funcLocal; }
     bool isFuncReturn() const { return m_funcReturn; }
     bool isPullup() const { return m_isPullup; }
@@ -2672,7 +2677,7 @@ public:
     }
     ASTNODE_NODE_FUNCS(MemberSel)
     virtual void cloneRelink() override {
-        if (m_varp && m_varp->clonep()) { m_varp = m_varp->clonep(); }
+        if (m_varp && m_varp->clonep()) m_varp = m_varp->clonep();
     }
     virtual const char* broken() const override {
         BROKEN_RTN(m_varp && !m_varp->brokeExists());
@@ -4588,7 +4593,7 @@ public:
 class AstDisableFork final : public AstNodeStmt {
     // A "disable fork" statement
 public:
-    AstDisableFork(FileLine* fl)
+    explicit AstDisableFork(FileLine* fl)
         : ASTGEN_SUPER(fl) {}
     ASTNODE_NODE_FUNCS(DisableFork)
 };
@@ -4596,7 +4601,7 @@ public:
 class AstWaitFork final : public AstNodeStmt {
     // A "wait fork" statement
 public:
-    AstWaitFork(FileLine* fl)
+    explicit AstWaitFork(FileLine* fl)
         : ASTGEN_SUPER(fl) {}
     ASTNODE_NODE_FUNCS(WaitFork)
 };
@@ -4649,7 +4654,7 @@ class AstJumpBlock final : public AstNodeStmt {
     // Parents:  {statement list}
     // Children: {statement list, with JumpGo and JumpLabel below}
 private:
-    AstJumpLabel* m_labelp;  // [After V3Jump] Pointer to declaration
+    AstJumpLabel* m_labelp = nullptr;  // [After V3Jump] Pointer to declaration
     int m_labelNum = 0;  // Set by V3EmitCSyms to tell final V3Emit what to increment
 public:
     // After construction must call ->labelp to associate with appropriate label
@@ -4835,7 +4840,7 @@ class AstConsDynArray final : public AstNodeMath {
     // Parents: math
     // Children: expression (elements or other queues)
 public:
-    AstConsDynArray(FileLine* fl, AstNode* lhsp = nullptr, AstNode* rhsp = nullptr)
+    explicit AstConsDynArray(FileLine* fl, AstNode* lhsp = nullptr, AstNode* rhsp = nullptr)
         : ASTGEN_SUPER(fl) {
         setNOp1p(lhsp);
         setNOp2p(rhsp);
@@ -4857,7 +4862,7 @@ class AstConsQueue final : public AstNodeMath {
     // Parents: math
     // Children: expression (elements or other queues)
 public:
-    AstConsQueue(FileLine* fl, AstNode* lhsp = nullptr, AstNode* rhsp = nullptr)
+    explicit AstConsQueue(FileLine* fl, AstNode* lhsp = nullptr, AstNode* rhsp = nullptr)
         : ASTGEN_SUPER(fl) {
         setNOp1p(lhsp);
         setNOp2p(rhsp);
@@ -4975,7 +4980,7 @@ class AstInitArray final : public AstNode {
     // Parents: ASTVAR::init()
     // Children: AstInitItem
 public:
-    typedef std::map<uint32_t, AstInitItem*> KeyItemMap;
+    using KeyItemMap = std::map<uint32_t, AstInitItem*>;
 
 private:
     KeyItemMap m_map;  // Node value for each array index
@@ -5121,7 +5126,7 @@ class AstPrintTimeScale final : public AstNodeStmt {
     string m_name;  // Parent module name
     VTimescale m_timeunit;  // Parent module time unit
 public:
-    AstPrintTimeScale(FileLine* fl)
+    explicit AstPrintTimeScale(FileLine* fl)
         : ASTGEN_SUPER(fl) {}
     ASTNODE_NODE_FUNCS(PrintTimeScale)
     virtual void name(const string& name) override { m_name = name; }
@@ -7289,7 +7294,7 @@ class AstShiftL final : public AstNodeBiop {
 public:
     AstShiftL(FileLine* fl, AstNode* lhsp, AstNode* rhsp, int setwidth = 0)
         : ASTGEN_SUPER(fl, lhsp, rhsp) {
-        if (setwidth) { dtypeSetLogicSized(setwidth, VSigning::UNSIGNED); }
+        if (setwidth) dtypeSetLogicSized(setwidth, VSigning::UNSIGNED);
     }
     ASTNODE_NODE_FUNCS(ShiftL)
     virtual AstNode* cloneType(AstNode* lhsp, AstNode* rhsp) override {
@@ -7300,7 +7305,9 @@ public:
     }
     virtual string emitVerilog() override { return "%k(%l %f<< %r)"; }
     virtual string emitC() override { return "VL_SHIFTL_%nq%lq%rq(%nw,%lw,%rw, %P, %li, %ri)"; }
-    virtual string emitSimpleOperator() override { return "<<"; }
+    virtual string emitSimpleOperator() override {
+        return (rhsp()->isWide() || rhsp()->isQuad()) ? "" : "<<";
+    }
     virtual bool cleanOut() const override { return false; }
     virtual bool cleanLhs() const override { return false; }
     virtual bool cleanRhs() const override { return true; }
@@ -7311,7 +7318,7 @@ class AstShiftR final : public AstNodeBiop {
 public:
     AstShiftR(FileLine* fl, AstNode* lhsp, AstNode* rhsp, int setwidth = 0)
         : ASTGEN_SUPER(fl, lhsp, rhsp) {
-        if (setwidth) { dtypeSetLogicSized(setwidth, VSigning::UNSIGNED); }
+        if (setwidth) dtypeSetLogicSized(setwidth, VSigning::UNSIGNED);
     }
     ASTNODE_NODE_FUNCS(ShiftR)
     virtual AstNode* cloneType(AstNode* lhsp, AstNode* rhsp) override {
@@ -7322,7 +7329,9 @@ public:
     }
     virtual string emitVerilog() override { return "%k(%l %f>> %r)"; }
     virtual string emitC() override { return "VL_SHIFTR_%nq%lq%rq(%nw,%lw,%rw, %P, %li, %ri)"; }
-    virtual string emitSimpleOperator() override { return ">>"; }
+    virtual string emitSimpleOperator() override {
+        return (rhsp()->isWide() || rhsp()->isQuad()) ? "" : ">>";
+    }
     virtual bool cleanOut() const override { return false; }
     virtual bool cleanLhs() const override { return true; }
     virtual bool cleanRhs() const override { return true; }
@@ -7337,7 +7346,7 @@ public:
     AstShiftRS(FileLine* fl, AstNode* lhsp, AstNode* rhsp, int setwidth = 0)
         : ASTGEN_SUPER(fl, lhsp, rhsp) {
         // Important that widthMin be correct, as opExtend requires it after V3Expand
-        if (setwidth) { dtypeSetLogicSized(setwidth, VSigning::SIGNED); }
+        if (setwidth) dtypeSetLogicSized(setwidth, VSigning::SIGNED);
     }
     ASTNODE_NODE_FUNCS(ShiftRS)
     virtual AstNode* cloneType(AstNode* lhsp, AstNode* rhsp) override {
@@ -9039,7 +9048,7 @@ public:
         , m_cleanOut{cleanOut}
         , m_pure{true} {
         addNOp1p(new AstText(fl, textStmt, true));
-        if (setwidth) { dtypeSetLogicSized(setwidth, VSigning::UNSIGNED); }
+        if (setwidth) dtypeSetLogicSized(setwidth, VSigning::UNSIGNED);
     }
     ASTNODE_NODE_FUNCS(CMath)
     virtual bool isGateOptimizable() const override { return m_pure; }
@@ -9171,7 +9180,7 @@ class AstTypeTable final : public AstNode {
     AstQueueDType* m_queueIndexp = nullptr;
     AstBasicDType* m_basicps[AstBasicDTypeKwd::_ENUM_MAX];
     //
-    typedef std::map<VBasicTypeKey, AstBasicDType*> DetailedMap;
+    using DetailedMap = std::map<VBasicTypeKey, AstBasicDType*>;
     DetailedMap m_detailedMap;
 
 public:
@@ -9209,6 +9218,7 @@ private:
     AstExecGraph* m_execGraphp = nullptr;  // Execution MTask graph for threads>1 mode
     VTimescale m_timeunit;  // Global time unit
     VTimescale m_timeprecision;  // Global time precision
+    bool m_timescaleSpecified = false;  // Input HDL specified timescale
 public:
     AstNetlist()
         : ASTGEN_SUPER(new FileLine(FileLine::builtInFilename())) {}
@@ -9260,6 +9270,8 @@ public:
         m_timeprecision = v3Global.opt.timeDefaultPrec();
     }
     void timeprecisionMerge(FileLine*, const VTimescale& value);
+    void timescaleSpecified(bool specified) { m_timescaleSpecified = specified; }
+    bool timescaleSpecified() const { return m_timescaleSpecified; }
 };
 
 //######################################################################

@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -117,7 +117,7 @@ class TristateGraph final {
 
     // TYPES
 public:
-    typedef std::vector<AstVar*> VarVec;
+    using VarVec = std::vector<AstVar*>;
 
 private:
     // MEMBERS
@@ -328,8 +328,8 @@ class TristateVisitor final : public TristateBaseVisitor {
     AstUser5InUse m_inuser5;
 
     // TYPES
-    typedef std::vector<AstVarRef*> RefVec;
-    typedef std::unordered_map<AstVar*, RefVec*> VarMap;
+    using RefVec = std::vector<AstVarRef*>;
+    using VarMap = std::unordered_map<AstVar*, RefVec*>;
     enum : uint8_t {
         U2_GRAPHING = 1,  // bit[0] if did m_graphing visit
         U2_NONGRAPH = 2,  // bit[1] if did !m_graphing visit

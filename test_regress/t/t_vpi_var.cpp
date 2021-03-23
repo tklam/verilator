@@ -67,6 +67,12 @@ bool verbose = false;
         return __LINE__; \
     }
 
+#define CHECK_RESULT_Z(got) \
+    if ((got)) { \
+        printf("%%Error: %s:%d: GOT = !NULL  EXP = NULL\n", FILENM, __LINE__); \
+        return __LINE__; \
+    }
+
 // Use cout to avoid issues with %d/%lx etc
 #define CHECK_RESULT(got, exp) \
     if ((got) != (exp)) { \
@@ -327,6 +333,25 @@ int _mon_check_var() {
         CHECK_RESULT_CSTR(p, "vpiConstant");
     }
 
+    TestVpiHandle vh5 = VPI_HANDLE("quads");
+    CHECK_RESULT_NZ(vh5);
+    {
+        TestVpiHandle vh10 = vpi_handle(vpiLeftRange, vh5);
+        CHECK_RESULT_NZ(vh10);
+        vpi_get_value(vh10, &tmpValue);
+        CHECK_RESULT(tmpValue.value.integer, 2);
+        p = vpi_get_str(vpiType, vh10);
+        CHECK_RESULT_CSTR(p, "vpiConstant");
+    }
+    {
+        TestVpiHandle vh10 = vpi_handle(vpiRightRange, vh5);
+        CHECK_RESULT_NZ(vh10);
+        vpi_get_value(vh10, &tmpValue);
+        CHECK_RESULT(tmpValue.value.integer, 3);
+        p = vpi_get_str(vpiType, vh10);
+        CHECK_RESULT_CSTR(p, "vpiConstant");
+    }
+
     return 0;
 }
 
@@ -338,6 +363,7 @@ int _mon_check_varlist() {
 
     TestVpiHandle vh10 = vpi_iterate(vpiReg, vh2);
     CHECK_RESULT_NZ(vh10);
+    CHECK_RESULT(vpi_get(vpiType, vh10), vpiIterator);
 
     {
         TestVpiHandle vh11 = vpi_scan(vh10);
@@ -455,7 +481,7 @@ int _mon_check_string() {
 
         v.format = vpiStringVal;
         vpi_get_value(vh1, &v);
-        if (vpi_chk_error(&e)) { printf("%%vpi_chk_error : %s\n", e.message); }
+        if (vpi_chk_error(&e)) printf("%%vpi_chk_error : %s\n", e.message);
 
         (void)vpi_chk_error(NULL);
 
@@ -472,7 +498,7 @@ int _mon_check_putget_str(p_cb_data cb_data) {
     static TestVpiHandle cb;
     static struct {
         TestVpiHandle scope, sig, rfr, check, verbose;
-        char str[128 + 1];  // char per bit plus null terminator
+        std::string str;
         int type;  // value type in .str
         union {
             PLI_INT32 integer;
@@ -506,10 +532,10 @@ int _mon_check_putget_str(p_cb_data cb_data) {
                 vpi_get_value(data[i].sig, &v);
                 TEST_MSG("%s\n", v.value.str);
                 if (data[i].type) {
-                    CHECK_RESULT_CSTR(v.value.str, data[i].str);
+                    CHECK_RESULT_CSTR(v.value.str, data[i].str.c_str());
                 } else {
                     data[i].type = v.format;
-                    strcpy(data[i].str, v.value.str);
+                    data[i].str = std::string(v.value.str);
                 }
             }
 
@@ -530,7 +556,7 @@ int _mon_check_putget_str(p_cb_data cb_data) {
             if (callback_count_strs & 7) {
                 // put same value back - checking encoding/decoding equivalent
                 v.format = data[i].type;
-                v.value.str = data[i].str;
+                v.value.str = (PLI_BYTE8*)(data[i].str.c_str());  // Can't reinterpret_cast
                 vpi_put_value(data[i].sig, &v, &t, vpiNoDelay);
                 v.format = vpiIntVal;
                 v.value.integer = 1;
@@ -548,7 +574,7 @@ int _mon_check_putget_str(p_cb_data cb_data) {
                     TEST_MSG("new value\n");
                     for (int j = 0; j < 4; j++) {
                         data[i].value.vector[j].aval = rand_r(&seed);
-                        if (j == (words - 1)) { data[i].value.vector[j].aval &= mask; }
+                        if (j == (words - 1)) data[i].value.vector[j].aval &= mask;
                         TEST_MSG(" %08x\n", data[i].value.vector[j].aval);
                     }
                     v.value.vector = data[i].value.vector;
@@ -604,6 +630,7 @@ int _mon_check_vlog_info() {
     CHECK_RESULT_CSTR(vlog_info.argv[1], "+PLUS");
     CHECK_RESULT_CSTR(vlog_info.argv[2], "+INT=1234");
     CHECK_RESULT_CSTR(vlog_info.argv[3], "+STRSTR");
+    CHECK_RESULT_Z(vlog_info.argv[4]);
     if (TestSimulator::is_verilator()) {
         CHECK_RESULT_CSTR(vlog_info.product, "Verilator");
         CHECK_RESULT(strlen(vlog_info.version) > 0, 1);
@@ -613,6 +640,10 @@ int _mon_check_vlog_info() {
 
 int mon_check() {
     // Callback from initial block in monitor
+#ifdef TEST_VERBOSE
+    printf("-mon_check()\n");
+#endif
+
     if (int status = _mon_check_mcd()) return status;
     if (int status = _mon_check_callbacks()) return status;
     if (int status = _mon_check_value_callbacks()) return status;
@@ -662,7 +693,7 @@ void (*vlog_startup_routines[])() = {vpi_compat_bootstrap, 0};
 
 double sc_time_stamp() { return main_time; }
 int main(int argc, char** argv, char** env) {
-    double sim_time = 1100;
+    vluint64_t sim_time = 1100;
     Verilated::commandArgs(argc, argv);
     Verilated::debug(0);
 
@@ -686,7 +717,7 @@ int main(int argc, char** argv, char** env) {
     topp->clk = 0;
     main_time += 10;
 
-    while (sc_time_stamp() < sim_time && !Verilated::gotFinish()) {
+    while (vl_time_stamp64() < sim_time && !Verilated::gotFinish()) {
         main_time += 1;
         topp->eval();
         VerilatedVpi::callValueCbs();
@@ -710,7 +741,7 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     VL_DO_DANGLING(delete topp, topp);
-    exit(0L);
+    return 0;
 }
 
 #endif

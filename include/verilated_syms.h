@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you can
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -23,8 +23,8 @@
 ///
 //*************************************************************************
 
-#ifndef _VERILATED_SYMS_H_
-#define _VERILATED_SYMS_H_ 1  ///< Header Guard
+#ifndef VERILATOR_VERILATED_SYMS_H_
+#define VERILATOR_VERILATED_SYMS_H_  ///< Header Guard
 
 #include "verilatedos.h"
 #include "verilated_heavy.h"
@@ -43,6 +43,7 @@ struct VerilatedCStrCmp {
 };
 
 /// Map of sorted scope names to find associated scope class
+// This is a class instead of typedef/using to allow forward declaration in verilated.h
 class VerilatedScopeNameMap final
     : public std::map<const char*, const VerilatedScope*, VerilatedCStrCmp> {
 public:
@@ -51,16 +52,17 @@ public:
 };
 
 /// Map of sorted variable names to find associated variable class
+// This is a class instead of typedef/using to allow forward declaration in verilated.h
 class VerilatedVarNameMap final : public std::map<const char*, VerilatedVar, VerilatedCStrCmp> {
 public:
     VerilatedVarNameMap() = default;
     ~VerilatedVarNameMap() = default;
 };
 
-typedef std::vector<const VerilatedScope*> VerilatedScopeVector;
-
+/// Map of parent scope to vector of children scopes
+// This is a class instead of typedef/using to allow forward declaration in verilated.h
 class VerilatedHierarchyMap final
-    : public std::unordered_map<const VerilatedScope*, VerilatedScopeVector> {
+    : public std::unordered_map<const VerilatedScope*, std::vector<const VerilatedScope*>> {
 public:
     VerilatedHierarchyMap() = default;
     ~VerilatedHierarchyMap() = default;

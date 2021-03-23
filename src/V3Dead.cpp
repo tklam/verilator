@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -79,7 +79,7 @@ private:
     AstUser1InUse m_inuser1;
 
     // TYPES
-    typedef std::multimap<AstVarScope*, AstNodeAssign*> AssignMap;
+    using AssignMap = std::multimap<AstVarScope*, AstNodeAssign*>;
 
     // STATE
     AstNodeModule* m_modp = nullptr;  // Current module

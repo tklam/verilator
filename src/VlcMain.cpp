@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -24,7 +24,7 @@
 #include "verilatedos.h"
 
 // Cheat for speed and compile .cpp files into one object
-#define _V3ERROR_NO_GLOBAL_ 1
+#define V3ERROR_NO_GLOBAL_
 #include "V3Error.cpp"
 #include "V3String.cpp"
 #include "V3Os.cpp"
@@ -130,7 +130,7 @@ void VlcOptions::showVersion(bool verbose) {
     if (!verbose) return;
 
     cout << endl;
-    cout << "Copyright 2003-2020 by Wilson Snyder.  Verilator is free software; you can\n";
+    cout << "Copyright 2003-2021 by Wilson Snyder.  Verilator is free software; you can\n";
     cout << "redistribute it and/or modify the Verilator internals under the terms of\n";
     cout << "either the GNU Lesser General Public License Version 3 or the Perl Artistic\n";
     cout << "License Version 2.0.\n";

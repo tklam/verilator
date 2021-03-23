@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -14,8 +14,8 @@
 //
 //*************************************************************************
 
-#ifndef _V3ERROR_H_
-#define _V3ERROR_H_ 1
+#ifndef VERILATOR_V3ERROR_H_
+#define VERILATOR_V3ERROR_H_
 
 #include "config_build.h"
 #include "verilatedos.h"
@@ -82,6 +82,7 @@ public:
         DECLFILENAME,   // Declaration doesn't match filename
         DEPRECATED,     // Feature will be deprecated
         ENDLABEL,       // End lable name mismatch
+        EOFNEWLINE,     // End-of-file missing newline
         GENCLK,         // Generated Clock
         HIERBLOCK,      // Ignored hierarchical block setting
         IFDEPTH,        // If statements too deep
@@ -94,10 +95,12 @@ public:
         INFINITELOOP,   // Infinite loop
         INITIALDLY,     // Initial delayed statement
         INSECURE,       // Insecure options
+        LATCH,          // Latch detected outside of always_latch block
         LITENDIAN,      // Little bit endian vector
         MODDUP,         // Duplicate module
         MULTIDRIVEN,    // Driven from multiple blocks
         MULTITOP,       // Multiple top level modules
+        NOLATCH,        // No latch detected in always_latch block
         PINMISSING,     // Cell pin not specified
         PINNOCONNECT,   // Cell pin not connected
         PINCONNECTEMPTY,// Cell pin connected by name with empty reference
@@ -158,12 +161,12 @@ public:
             "CASEINCOMPLETE", "CASEOVERLAP", "CASEWITHX", "CASEX", "CASTCONST", "CDCRSTLOGIC", "CLKDATA",
             "CMPCONST", "COLONPLUS", "COMBDLY", "CONTASSREG",
             "DEFPARAM", "DECLFILENAME", "DEPRECATED",
-            "ENDLABEL", "GENCLK", "HIERBLOCK",
+            "ENDLABEL", "EOFNEWLINE", "GENCLK", "HIERBLOCK",
             "IFDEPTH", "IGNOREDRETURN",
             "IMPERFECTSCH", "IMPLICIT", "IMPORTSTAR", "IMPURE",
             "INCABSPATH", "INFINITELOOP", "INITIALDLY", "INSECURE",
-            "LITENDIAN", "MODDUP",
-            "MULTIDRIVEN", "MULTITOP",
+            "LATCH", "LITENDIAN", "MODDUP",
+            "MULTIDRIVEN", "MULTITOP","NOLATCH",
             "PINMISSING", "PINNOCONNECT", "PINCONNECTEMPTY", "PKGNODECL", "PROCASSWIRE",
             "RANDC", "REALCVT", "REDEFMACRO",
             "SELRANGE", "SHORTREAL", "SPLITVAR", "STMTDLY", "SYMRSVDWORD", "SYNCASYNCNET",
@@ -199,15 +202,16 @@ public:
         return (m_e == ALWCOMBORDER || m_e == BSSPACE || m_e == CASEINCOMPLETE
                 || m_e == CASEOVERLAP || m_e == CASEWITHX || m_e == CASEX || m_e == CASTCONST
                 || m_e == CMPCONST || m_e == COLONPLUS || m_e == ENDLABEL || m_e == IMPLICIT
-                || m_e == LITENDIAN || m_e == PINMISSING || m_e == REALCVT || m_e == UNSIGNED
-                || m_e == WIDTH);
+                || m_e == LATCH || m_e == LITENDIAN || m_e == PINMISSING || m_e == REALCVT
+                || m_e == UNSIGNED || m_e == WIDTH);
     }
     // Warnings that are style only
     bool styleError() const {
         return (m_e == ASSIGNDLY  // More than style, but for backward compatibility
-                || m_e == BLKSEQ || m_e == DEFPARAM || m_e == DECLFILENAME || m_e == IMPORTSTAR
-                || m_e == INCABSPATH || m_e == PINCONNECTEMPTY || m_e == PINNOCONNECT
-                || m_e == SYNCASYNCNET || m_e == UNDRIVEN || m_e == UNUSED || m_e == VARHIDDEN);
+                || m_e == BLKSEQ || m_e == DEFPARAM || m_e == DECLFILENAME || m_e == EOFNEWLINE
+                || m_e == IMPORTSTAR || m_e == INCABSPATH || m_e == PINCONNECTEMPTY
+                || m_e == PINNOCONNECT || m_e == SYNCASYNCNET || m_e == UNDRIVEN || m_e == UNUSED
+                || m_e == VARHIDDEN);
     }
 };
 inline bool operator==(const V3ErrorCode& lhs, const V3ErrorCode& rhs) {
@@ -224,8 +228,8 @@ inline std::ostream& operator<<(std::ostream& os, const V3ErrorCode& rhs) {
 class V3Error final {
     // Base class for any object that wants debugging and error reporting
 
-    typedef std::set<string> MessagesSet;
-    typedef void (*ErrorExitCb)(void);
+    using MessagesSet = std::set<std::string>;
+    using ErrorExitCb = void (*)(void);
 
 private:
     static bool s_describedWarnings;  // Told user how to disable warns
@@ -362,12 +366,12 @@ inline void v3errorEndFatal(std::ostringstream& sstr) {
 // Assertion without object, generally UOBJASSERT preferred
 #define UASSERT(condition, stmsg) \
     do { \
-        if (VL_UNCOVERABLE(!(condition))) { v3fatalSrc(stmsg); } \
+        if (VL_UNCOVERABLE(!(condition))) v3fatalSrc(stmsg); \
     } while (false)
 // Assertion with object
 #define UASSERT_OBJ(condition, obj, stmsg) \
     do { \
-        if (VL_UNCOVERABLE(!(condition))) { (obj)->v3fatalSrc(stmsg); } \
+        if (VL_UNCOVERABLE(!(condition))) (obj)->v3fatalSrc(stmsg); \
     } while (false)
 // For use in V3Ast static functions only
 #define UASSERT_STATIC(condition, stmsg) \

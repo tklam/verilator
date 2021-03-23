@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
 //
-// Copyright 2009-2020 by Wilson Snyder. This program is free software; you can
+// Copyright 2009-2021 by Wilson Snyder. This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -19,8 +19,8 @@
 ///
 //=========================================================================
 
-#ifndef _VERILATED_VPI_H_
-#define _VERILATED_VPI_H_ 1  ///< Header Guard
+#ifndef VERILATOR_VERILATED_VPI_H_
+#define VERILATOR_VERILATED_VPI_H_  ///< Header Guard
 
 #include "verilatedos.h"
 #include "verilated.h"
@@ -47,7 +47,8 @@ public:
     /// Returns time of the next registered VPI callback, or
     /// ~(0) if none are registered
     static QData cbNextDeadline() VL_MT_UNSAFE_ONE;
-    /// Self test, for internal use only
+
+    // Self test, for internal use only
     static void selfTest() VL_MT_UNSAFE_ONE;
 };
 

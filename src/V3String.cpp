@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -460,7 +460,7 @@ VSpellCheck::EditDistance VSpellCheck::cutoffDistance(size_t goal_len, size_t ca
     return (max_length + 2) / 3;
 }
 
-string VSpellCheck::bestCandidateInfo(const string& goal, EditDistance& distancer) {
+string VSpellCheck::bestCandidateInfo(const string& goal, EditDistance& distancer) const {
     string bestCandidate;
     size_t gLen = goal.length();
     distancer = LENGTH_LIMIT * 10;

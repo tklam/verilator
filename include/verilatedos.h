@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you can
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -22,8 +22,8 @@
 ///
 //*************************************************************************
 
-#ifndef _VERILATEDOS_H_
-#define _VERILATEDOS_H_ 1  ///< Header Guard
+#ifndef VERILATOR_VERILATEDOS_H_
+#define VERILATOR_VERILATEDOS_H_  ///< Header Guard
 
 // Current clang-format versions botch #ifdef inclusion, so
 // clang-format off
@@ -39,6 +39,9 @@
 # define VL_ATTR_PRINTF(fmtArgNum) __attribute__((format(printf, (fmtArgNum), (fmtArgNum) + 1)))
 # define VL_ATTR_PURE __attribute__((pure))
 # define VL_ATTR_UNUSED __attribute__((unused))
+# if !defined(_WIN32) && !defined(__MINGW32__)
+#  define VL_ATTR_WEAK __attribute__((weak))
+# endif
 # define VL_FUNC __func__
 # if defined(__clang__) && defined(VL_THREADED)
 #  define VL_ACQUIRE(...) __attribute__((acquire_capability(__VA_ARGS__)))
@@ -87,6 +90,9 @@
 #ifndef VL_ATTR_UNUSED
 # define VL_ATTR_UNUSED  ///< Function that may be never used
 #endif
+#ifndef VL_ATTR_WEAK
+# define VL_ATTR_WEAK  ///< Function external that is optionally defined
+#endif
 #ifndef VL_FUNC
 # define VL_FUNC "__func__"  ///< Name of current function for error macros
 #endif
@@ -118,7 +124,7 @@
 # define VL_PREFETCH_RW(p)  ///< Prefetch data with read/write intent
 #endif
 
-#ifdef VL_THREADED
+#if defined(VL_THREADED) && !defined(VL_CPPCHECK)
 # if defined(_MSC_VER) && _MSC_VER >= 1900
 #  define VL_THREAD_LOCAL thread_local
 # elif defined(__GNUC__)
@@ -133,18 +139,23 @@
 # define VL_THREAD_LOCAL  ///< Use new C++ static local thread
 #endif
 
-#define VL_THREAD  ///< Deprecated
-#define VL_STATIC_OR_THREAD static  ///< Deprecated
+#ifndef VL_NO_LEGACY
+# define VL_THREAD  ///< Deprecated
+# define VL_STATIC_OR_THREAD static  ///< Deprecated
+#endif
 
 #define VL_PURE  ///< Comment tag that Function is pure (and thus also VL_MT_SAFE)
 #define VL_MT_SAFE  ///< Comment tag that function is threadsafe when VL_THREADED
 #define VL_MT_SAFE_POSTINIT  ///< Comment tag that function is threadsafe when VL_THREADED, only
                              ///< during normal operation (post-init)
+#define VL_MT_SAFE_EXCLUDES(mutex) VL_EXCLUDES(mutex)  ///< Threadsafe and uses given mutex
 #define VL_MT_UNSAFE  ///< Comment tag that function is not threadsafe when VL_THREADED
 #define VL_MT_UNSAFE_ONE  ///< Comment tag that function is not threadsafe when VL_THREADED,
                           ///< protected to make sure single-caller
 
-#define VL_ULL(c) (c##ULL)  ///< Add appropriate suffix to 64-bit constant (deprecated)
+#ifndef VL_NO_LEGACY
+# define VL_ULL(c) (c##ULL)  ///< Add appropriate suffix to 64-bit constant (deprecated)
+#endif
 
 // This is not necessarily the same as #UL, depending on what the IData typedef is.
 #define VL_UL(c) (static_cast<IData>(c##UL))  ///< Add appropriate suffix to 32-bit constant
@@ -184,16 +195,18 @@
 // C++-2011
 
 #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__) || defined(VL_CPPCHECK)
+# ifndef VL_NO_LEGACY
 // These are deprecated historical defines. We leave them in case users referenced them.
-# define VL_EQ_DELETE = delete
-# define vl_unique_ptr std::unique_ptr
-# define vl_unordered_map std::unordered_map
-# define vl_unordered_set std::unordered_set
-# define VL_INCLUDE_UNORDERED_MAP <unordered_map>
-# define VL_INCLUDE_UNORDERED_SET <unordered_set>
-# define VL_FINAL final
-# define VL_MUTABLE mutable
-# define VL_OVERRIDE override
+#  define VL_EQ_DELETE = delete
+#  define vl_unique_ptr std::unique_ptr
+#  define vl_unordered_map std::unordered_map
+#  define vl_unordered_set std::unordered_set
+#  define VL_INCLUDE_UNORDERED_MAP <unordered_map>
+#  define VL_INCLUDE_UNORDERED_SET <unordered_set>
+#  define VL_FINAL final
+#  define VL_MUTABLE mutable
+#  define VL_OVERRIDE override
+# endif
 #else
 # error "Verilator requires a C++11 or newer compiler"
 #endif
@@ -358,11 +371,14 @@ typedef unsigned long long vluint64_t;  ///< 64-bit unsigned type
 #define VL_BYTESIZE 8  ///< Bits in a CData / byte
 #define VL_SHORTSIZE 16  ///< Bits in a SData / short
 #define VL_IDATASIZE 32  ///< Bits in a IData / word
-#define VL_WORDSIZE VL_IDATASIZE  ///< Legacy define
 #define VL_QUADSIZE 64  ///< Bits in a QData / quadword
 #define VL_EDATASIZE 32  ///< Bits in a EData (WData entry)
 #define VL_EDATASIZE_LOG2 5  ///< log2(VL_EDATASIZE)
 #define VL_CACHE_LINE_BYTES 64  ///< Bytes in a cache line (for alignment)
+
+#ifndef VL_NO_LEGACY
+# define VL_WORDSIZE VL_IDATASIZE  ///< Legacy define
+#endif
 
 /// Bytes this number of bits needs (1 bit=1 byte)
 #define VL_BYTES_I(nbits) (((nbits) + (VL_BYTESIZE - 1)) / VL_BYTESIZE)
@@ -450,7 +466,7 @@ typedef unsigned long long vluint64_t;  ///< 64-bit unsigned type
 #  define NOMINMAX
 #  include "Windows.h"
 #  define VL_CPU_RELAX() YieldProcessor()
-# elif defined(__i386__) || defined(__x86_64__)
+# elif defined(__i386__) || defined(__x86_64__) || defined(VL_CPPCHECK)
 /// For more efficient busy waiting on SMT CPUs, let the processor know
 /// we're just waiting so it can let another thread run
 #  define VL_CPU_RELAX() asm volatile("rep; nop" ::: "memory")
@@ -466,12 +482,18 @@ typedef unsigned long long vluint64_t;  ///< 64-bit unsigned type
 #endif
 
 //=========================================================================
-// String related OS-specific functions
+// String/time related OS-specific functions
 
 #ifdef _MSC_VER
 # define VL_STRCASECMP _stricmp
 #else
 # define VL_STRCASECMP strcasecmp
+#endif
+
+#ifdef _MSC_VER
+# define VL_LOCALTIME_R(timep, tmp) localtime_c((tmp), (timep))
+#else
+# define VL_LOCALTIME_R(timep, tmp) localtime_r((timep), (tmp))
 #endif
 
 //=========================================================================

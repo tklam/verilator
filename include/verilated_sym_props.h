@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you can
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -24,8 +24,8 @@
 ///
 //*************************************************************************
 
-#ifndef _VERILATED_SYM_PROPS_H_
-#define _VERILATED_SYM_PROPS_H_ 1  ///< Header Guard
+#ifndef VERILATOR_VERILATED_SYM_PROPS_H_
+#define VERILATOR_VERILATED_SYM_PROPS_H_  ///< Header Guard
 
 #include "verilatedos.h"
 
@@ -70,7 +70,7 @@ public:
 
 class VerilatedVarProps VL_NOT_FINAL {
     // TYPES
-    enum { MAGIC = 0xddc4f829 };
+    static constexpr vluint32_t MAGIC = 0xddc4f829UL;
     // MEMBERS
     const vluint32_t m_magic;  // Magic number
     const VerilatedVarType m_vltype;  // Data type
@@ -81,9 +81,9 @@ class VerilatedVarProps VL_NOT_FINAL {
     std::vector<VerilatedRange> m_unpacked;  // Unpacked array ranges
     void initUnpacked(const int* ulims) {
         for (int i = 0; i < m_udims; ++i) {
-            const int left = ulims ? ulims[2 * i + 0] : 0;
-            const int right = ulims ? ulims[2 * i + 1] : 0;
-            m_unpacked.emplace_back(left, right);
+            const int uleft = ulims ? ulims[2 * i + 0] : 0;
+            const int uright = ulims ? ulims[2 * i + 1] : 0;
+            m_unpacked.emplace_back(uleft, uright);
         }
     }
     // CONSTRUCTORS

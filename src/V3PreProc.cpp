@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2000-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2000-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -108,8 +108,8 @@ public:
 class V3PreProcImp final : public V3PreProc {
 public:
     // TYPES
-    typedef std::map<const string, VDefine> DefinesMap;
-    typedef VInFilter::StrList StrList;
+    using DefinesMap = std::map<const std::string, VDefine>;
+    using StrList = VInFilter::StrList;
 
     // debug() -> see V3PreShellImp::debug; use --debugi-V3PreShell
 
@@ -272,7 +272,7 @@ public:
         m_lexp->m_keepComments = keepComments();
         m_lexp->m_keepWhitespace = keepWhitespace();
         m_lexp->m_pedantic = pedantic();
-        m_lexp->debug(debug() >= 5 ? debug() : 0);  // See also V3PreProc::debug() method
+        debug(debug());  // Set lexer debug via V3PreProc::debug() method
     }
     ~V3PreProcImp() override {
         if (m_lexp) VL_DO_CLEAR(delete m_lexp, m_lexp = nullptr);
@@ -485,6 +485,12 @@ void V3PreProcImp::comment(const string& text) {
 
 //*************************************************************************
 // VPreProc Methods.
+
+void V3PreProc::debug(int level) {
+    m_debug = level;
+    V3PreProcImp* idatap = static_cast<V3PreProcImp*>(this);
+    if (idatap->m_lexp) idatap->m_lexp->debug(debug() >= 5 ? debug() : 0);
+}
 
 FileLine* V3PreProc::fileline() {
     V3PreProcImp* idatap = static_cast<V3PreProcImp*>(this);
@@ -804,6 +810,8 @@ void V3PreProcImp::openFile(FileLine*, VInFilter* filterp, const string& filenam
     // Filter all DOS CR's en-mass.  This avoids bugs with lexing CRs in the wrong places.
     // This will also strip them from strings, but strings aren't supposed
     // to be multi-line without a "\"
+    int eof_newline = 0;  // Number of characters following last newline
+    int eof_lineno = 1;
     for (StrList::iterator it = wholefile.begin(); it != wholefile.end(); ++it) {
         // We don't end-loop at \0 as we allow and strip mid-string '\0's (for now).
         bool strip = false;
@@ -814,6 +822,12 @@ void V3PreProcImp::openFile(FileLine*, VInFilter* filterp, const string& filenam
             if (VL_UNLIKELY(*cp == '\r' || *cp == '\0')) {
                 strip = true;
                 break;
+            }
+            if (VL_UNLIKELY(*cp == '\n')) {
+                eof_newline = 0;
+                ++eof_lineno;
+            } else {
+                ++eof_newline;
             }
         }
         if (strip) {
@@ -829,6 +843,15 @@ void V3PreProcImp::openFile(FileLine*, VInFilter* filterp, const string& filenam
         m_lexp->scanBytesBack(*it);
         // Reclaim memory; the push saved the string contents for us
         *it = "";
+    }
+
+    // Warning check
+    if (eof_newline) {
+        FileLine* fl = new FileLine{flsp};
+        fl->contentLineno(eof_lineno);
+        fl->column(eof_newline + 1, eof_newline + 1);
+        fl->v3warn(EOFNEWLINE, "Missing newline at end of file (POSIX 3.206)."
+                                   << fl->warnMore() << "... Suggest add newline.");
     }
 }
 
@@ -953,7 +976,7 @@ int V3PreProcImp::getStateToken() {
 
         // Most states emit white space and comments between tokens. (Unless collecting a string)
         if (tok == VP_WHITE && state() != ps_STRIFY) return tok;
-        if (tok == VP_BACKQUOTE && state() != ps_STRIFY) { tok = VP_TEXT; }
+        if (tok == VP_BACKQUOTE && state() != ps_STRIFY) tok = VP_TEXT;
         if (tok == VP_COMMENT) {
             if (!m_off) {
                 if (m_lexp->m_keepComments == KEEPCMT_SUB) {
@@ -1317,7 +1340,6 @@ int V3PreProcImp::getStateToken() {
                 // Convert any newlines to spaces, so we don't get a
                 // multiline "..." without \ escapes.
                 // The spec is silent about this either way; simulators vary
-                string::size_type pos;
                 std::replace(out.begin(), out.end(), '\n', ' ');
                 unputString(string("\"") + out + "\"");
                 statePop();

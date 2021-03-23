@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2005-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2005-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -14,8 +14,8 @@
 //
 //*************************************************************************
 
-#ifndef _V3LANGUAGEWORDS_H_
-#define _V3LANGUAGEWORDS_H_ 1
+#ifndef VERILATOR_V3LANGUAGEWORDS_H_
+#define VERILATOR_V3LANGUAGEWORDS_H_
 
 #include "config_build.h"
 #include "verilatedos.h"
@@ -27,7 +27,7 @@
 class V3LanguageWords final {
     // List of common reserved keywords
 private:
-    typedef std::map<const string, string> KeywordMap;
+    using KeywordMap = std::map<const string, std::string>;
     struct Singleton {
         KeywordMap s_kwdMap;  // List of keywords, and what language applies
         Singleton() { init(); }
@@ -36,7 +36,7 @@ private:
     };
 
 public:
-    typedef KeywordMap::const_iterator const_iterator;
+    using const_iterator = KeywordMap::const_iterator;
     // METHODS
     static const_iterator begin() { return s().s_kwdMap.begin(); }
     static const_iterator end() { return s().s_kwdMap.end(); }

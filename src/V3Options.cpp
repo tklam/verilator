@@ -6,7 +6,7 @@
 //
 //*************************************************************************
 //
-// Copyright 2003-2020 by Wilson Snyder. This program is free software; you
+// Copyright 2003-2021 by Wilson Snyder. This program is free software; you
 // can redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -18,6 +18,7 @@
 #include "verilatedos.h"
 
 #include "V3Global.h"
+#include "V3Ast.h"
 #include "V3String.h"
 #include "V3Os.h"
 #include "V3Options.h"
@@ -53,7 +54,7 @@
 class V3OptionsImp final {
 public:
     // TYPES
-    typedef std::map<const string, std::set<string>> DirMap;  // Directory listing
+    using DirMap = std::map<const string, std::set<std::string>>;  // Directory listing
 
     // STATE
     std::list<string> m_allArgs;  // List of every argument encountered
@@ -864,10 +865,10 @@ void V3Options::parseOpts(FileLine* fl, int argc, char** argv) {
     }
 
     // Default prefix to the filename
-    if (prefix() == "" && topModule() != "") m_prefix = string("V") + topModule();
-    if (prefix() == "" && vFilesList.size() >= 1) {
-        m_prefix = string("V") + V3Os::filenameNonExt(*(vFilesList.begin()));
-    }
+    if (prefix() == "" && topModule() != "")
+        m_prefix = string("V") + AstNode::encodeName(topModule());
+    if (prefix() == "" && vFilesList.size() >= 1)
+        m_prefix = string("V") + AstNode::encodeName(V3Os::filenameNonExt(*(vFilesList.begin())));
     if (modPrefix() == "") m_modPrefix = prefix();
 
     // Find files in makedir
@@ -1044,6 +1045,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
             } else if (onoff(sw, "-ignc", flag /*ref*/)) {
                 m_ignc = flag;
             } else if (onoff(sw, "-inhibit-sim", flag /*ref*/)) {
+                fl->v3warn(DEPRECATED, "-inhibit-sim option is deprecated");
                 m_inhibitSim = flag;
             } else if (onoff(sw, "-lint-only", flag /*ref*/)) {
                 m_lintOnly = flag;
@@ -1159,7 +1161,8 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                     case 'k': m_oSubstConst = flag; break;
                     case 'l': m_oLife = flag; break;
                     case 'm': m_oAssemble = flag; break;
-                    //    n o
+                    //    n
+                    case 'o': m_oConstBitOpTree = flag; break;  // Can remove ~2022-01 when stable
                     case 'p':
                         m_public = !flag;
                         break;  // With -Op so flag=0, we want public on so few optimizations done
@@ -1371,7 +1374,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 string msg = sw + strlen("-Werror-");
                 V3ErrorCode code(msg.c_str());
                 if (code == V3ErrorCode::EC_ERROR) {
-                    if (!isFuture(msg)) { fl->v3fatal("Unknown warning specified: " << sw); }
+                    if (!isFuture(msg)) fl->v3fatal("Unknown warning specified: " << sw);
                 } else {
                     V3Error::pretendError(code, true);
                 }
@@ -1404,7 +1407,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                     string msg = sw + strlen("-Wwarn-");
                     V3ErrorCode code(msg.c_str());
                     if (code == V3ErrorCode::EC_ERROR) {
-                        if (!isFuture(msg)) { fl->v3fatal("Unknown warning specified: " << sw); }
+                        if (!isFuture(msg)) fl->v3fatal("Unknown warning specified: " << sw);
                     } else {
                         FileLine::globalWarnOff(code, false);
                         V3Error::pretendError(code, false);
@@ -1437,16 +1440,14 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 shift;
                 parseOptsFile(fl, parseFileArg(optdir, argv[i]), false);
             } else if (!strcmp(sw, "-gdb")) {
-                // Used only in perl shell
+                // Processed only in bin/verilator shell
             } else if (!strcmp(sw, "-waiver-output") && (i + 1) < argc) {
                 shift;
                 m_waiverOutput = argv[i];
             } else if (!strcmp(sw, "-rr")) {
-                // Used only in perl shell
+                // Processed only in bin/verilator shell
             } else if (!strcmp(sw, "-gdbbt")) {
-                // Used only in perl shell
-            } else if (!strcmp(sw, "-quiet-exit")) {
-                // Used only in perl shell
+                // Processed only in bin/verilator shell
             } else if (!strcmp(sw, "-mod-prefix") && (i + 1) < argc) {
                 shift;
                 m_modPrefix = argv[i];
@@ -1747,7 +1748,7 @@ void V3Options::showVersion(bool verbose) {
     if (!verbose) return;
 
     cout << endl;
-    cout << "Copyright 2003-2020 by Wilson Snyder.  Verilator is free software; you can\n";
+    cout << "Copyright 2003-2021 by Wilson Snyder.  Verilator is free software; you can\n";
     cout << "redistribute it and/or modify the Verilator internals under the terms of\n";
     cout << "either the GNU Lesser General Public License Version 3 or the Perl Artistic\n";
     cout << "License Version 2.0.\n";
@@ -1866,6 +1867,7 @@ void V3Options::optimize(int level) {
     m_oCase = flag;
     m_oCombine = flag;
     m_oConst = flag;
+    m_oConstBitOpTree = flag;
     m_oDedupe = flag;
     m_oExpand = flag;
     m_oGate = flag;
