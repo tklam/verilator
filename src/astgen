@@ -656,7 +656,8 @@ def write_header(filename):
 # main
 
 parser = argparse.ArgumentParser(
-    allow_abbrev=False,
+    # commented to make it compatible with Python < 3.5
+    # allow_abbrev=False,
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description="""Generate V3Ast headers to reduce C++ code duplication.""",
     epilog=
