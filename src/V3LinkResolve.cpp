@@ -223,6 +223,7 @@ private:
                 = VN_CAST(basefromp, NodeVarRef)) {  // Maybe varxref - so need to clone
                 nodep->attrp(new AstAttrOf(nodep->fileline(), AstAttrType::VAR_BASE,
                                            varrefp->cloneTree(false)));
+                if (basefromp) UINFO(1, "    Related node: " << basefromp << endl);
             } else if (AstUnlinkedRef* uvxrp
                        = VN_CAST(basefromp, UnlinkedRef)) {  // Maybe unlinked - so need to clone
                 nodep->attrp(new AstAttrOf(nodep->fileline(), AstAttrType::VAR_BASE,
@@ -233,6 +234,12 @@ private:
             } else if (AstEnumItemRef* fromp = VN_CAST(basefromp, EnumItemRef)) {
                 nodep->attrp(new AstAttrOf(nodep->fileline(), AstAttrType::ENUM_BASE,
                                            fromp->cloneTree(false)));
+            } else if (AstParseRef * fromp = VN_CAST(basefromp, ParseRef)) {
+                 // For undefined modules when xml-write-not-found-module-instance-ports is enabled
+                 //
+                 // If this node is not handedl, the last if block will be reached and there will be
+                 // a fatal error.
+                 if (basefromp) UINFO(1, "    ParseRef: Related node: " << basefromp << endl);
             } else if (VN_IS(basefromp, Replicate)) {
                 // From {...}[...] syntax in IEEE 2017
                 if (basefromp) UINFO(1, "    Related node: " << basefromp << endl);

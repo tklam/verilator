@@ -226,6 +226,12 @@ private:
         }  // else might be struct, etc
     }
     virtual void visit(AstNodePreSel* nodep) override {  // LCOV_EXCL_LINE
+        if (v3Global.opt.xmlOnly() && v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+            // For undefined modules when xml-write-not-found-module-instance-ports is enabled
+            //
+            // Just wrie the node content out, intead of having a fatal error.
+            return;
+        }
         // This check could go anywhere after V3Param
         nodep->v3fatalSrc("Presels should have been removed before this point");
     }
