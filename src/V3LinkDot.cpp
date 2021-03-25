@@ -1971,6 +1971,9 @@ private:
                 // Prevent warnings about missing pin connects
                 if (!v3Global.opt.xmlOnly()
                     || !v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+                    // the instance in the xml will be missing the information
+                    // of their pins and the assignments after this block of
+                    // code
                     if (nodep->pinsp()) nodep->pinsp()->unlinkFrBackWithNext()->deleteTree();
                     if (nodep->paramsp()) nodep->paramsp()->unlinkFrBackWithNext()->deleteTree();
                 }
