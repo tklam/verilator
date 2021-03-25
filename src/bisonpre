@@ -456,7 +456,8 @@ def _enaline(line):
 # main
 
 parser = argparse.ArgumentParser(
-    allow_abbrev=False,
+    # commented to make it compatible with Python < 3.5
+    # allow_abbrev=False,
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=
     """Bisonpre is a wrapper for the Bison YACC replacement.  Input to Bison is
