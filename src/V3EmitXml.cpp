@@ -212,6 +212,8 @@ class EmitXmlFileVisitor final : public AstNVisitor {
         if (nodep->isModport()) mpn = nodep->modportName();
         puts(" modportname=");
         putsQuoted(mpn);
+        puts(" ifacename=");
+        putsQuoted(nodep->ifaceName());
         outputChildrenEnd(nodep, "");
     }
     virtual void visit(AstDisplay* nodep) override {
