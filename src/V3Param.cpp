@@ -605,6 +605,14 @@ class ParamProcessor final {
 
     void cellPinCleanup(AstNode* nodep, AstPin* pinp, AstNodeModule* srcModp, string& longnamer,
                         bool& any_overridesr) {
+
+        if (VN_IS(srcModp, NotFoundModule)) {
+            if (v3Global.opt.xmlOnly()
+                && v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+                return;
+            }
+        }
+
         if (!pinp->exprp()) return;  // No-connect
         if (AstVar* modvarp = pinp->modVarp()) {
             if (!modvarp->isGParam()) {
