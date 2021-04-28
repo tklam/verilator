@@ -1,6 +1,8 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
 //
+// Code available from: https://verilator.org
+//
 // Copyright 2010-2021 by Wilson Snyder. This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
@@ -10,19 +12,17 @@
 //*************************************************************************
 ///
 /// \file
-/// \brief Verilator: String include for all Verilated C files
+/// \brief Verilated string and data-type header
 ///
-///     This file is included automatically by Verilator at the top of
-///     all C++ files it generates.  It is used when strings or other
-///     heavyweight types are required; these contents are not part of
-///     verilated.h to save compile time when such types aren't used.
-///
-/// Code available from: https://verilator.org
+/// This file is included automatically by Verilator at the top of
+/// all C++ files it generates.  It is used when strings or other
+/// heavyweight types are required; these contents are not part of
+/// verilated.h to save compile time when such types aren't used.
 ///
 //*************************************************************************
 
 #ifndef VERILATOR_VERILATED_HEAVY_H_
-#define VERILATOR_VERILATED_HEAVY_H_  ///< Header Guard
+#define VERILATOR_VERILATED_HEAVY_H_
 
 #include "verilated.h"
 
@@ -88,12 +88,14 @@ public:
 };
 
 //===================================================================
-// Verilog wide-number-in-array container
-// Similar to std::array<WData, N>, but lighter weight, only methods needed
-// by Verilator, to help compile time.
-//
-// This is only used when we need an upper-level container and so can't
-// simply use a C style array (which is just a pointer).
+/// Verilog wide unpacked bit container.
+/// Similar to std::array<WData, N>, but lighter weight, only methods needed
+/// by Verilator, to help compile time.
+///
+/// For example a Verilog "bit [94:0]" will become a VlWide<3> because 3*32
+/// bits are needed to hold the 95 bits. The MSB (bit 96) must always be
+/// zero in memory, but during intermediate operations in the Verilated
+/// internals is unpredictable.
 
 template <std::size_t T_Words> class VlWide final {
     EData m_storage[T_Words];
@@ -795,9 +797,12 @@ void VL_WRITEMEM_N(bool hex, int bits, const std::string& filename,
 }
 
 //===================================================================
-// Verilog packed array container
-// For when a standard C++[] array is not sufficient, e.g. an
-// array under a queue, or methods operating on the array
+/// Verilog packed array container
+/// For when a standard C++[] array is not sufficient, e.g. an
+/// array under a queue, or methods operating on the array.
+///
+/// This class may get exposed to a Verilated Model's top I/O, if the top
+/// IO has an unpacked array.
 
 template <class T_Value, std::size_t T_Depth> class VlUnpacked final {
 private:
@@ -849,7 +854,6 @@ std::string VL_TO_STRING(const VlUnpacked<T_Value, T_Depth>& obj) {
 // Verilog class reference container
 // There are no multithreaded locks on this; the base variable must
 // be protected by other means
-//
 
 #define VlClassRef std::shared_ptr
 

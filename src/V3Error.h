@@ -44,6 +44,7 @@ public:
         EC_FATALEXIT,   // Kill the program, suppress with --quiet-exit
         EC_FATALSRC,    // Kill the program, for internal source errors
         EC_ERROR,       // General error out, can't suppress
+        EC_FIRST_NAMED,  // Just a code so the program knows where to start info/errors
         // Boolean information we track per-line, but aren't errors
         I_CELLDEFINE,   // Inside cell define from `celldefine/`endcelldefine
         I_COVERAGE,     // Coverage is on/off from /*verilator coverage_on/off*/
@@ -63,6 +64,7 @@ public:
         ALWCOMBORDER,   // Always_comb with unordered statements
         ASSIGNDLY,      // Assignment delays
         ASSIGNIN,       // Assigning to input
+        BADSTDPRAGMA,   // Any error related to pragmas
         BLKANDNBLK,     // Blocked and non-blocking assignments to same variable
         BLKLOOPINIT,    // Delayed assignment to array inside for loops
         BLKSEQ,         // Blocking assignments in sequential block
@@ -101,11 +103,14 @@ public:
         MULTIDRIVEN,    // Driven from multiple blocks
         MULTITOP,       // Multiple top level modules
         NOLATCH,        // No latch detected in always_latch block
+        NULLPORT,       // Null port detected in module definition
+        PINCONNECTEMPTY,// Cell pin connected by name with empty reference
         PINMISSING,     // Cell pin not specified
         PINNOCONNECT,   // Cell pin not connected
-        PINCONNECTEMPTY,// Cell pin connected by name with empty reference
+        PINNOTFOUND,    // instance port name not found in it's module
         PKGNODECL,      // Error: Package/class needs to be predeclared
         PROCASSWIRE,    // Procedural assignment on wire
+        PROTECTED,      // detected `pragma protected
         RANDC,          // Unsupported: 'randc' converted to 'rand'
         REALCVT,        // Real conversion
         REDEFMACRO,     // Redefining existing define macro
@@ -149,14 +154,14 @@ public:
         // clang-format off
         static const char* const names[] = {
             // Leading spaces indicate it can't be disabled.
-            " MIN", " INFO", " FATAL", " FATALEXIT", " FATALSRC", " ERROR",
+            " MIN", " INFO", " FATAL", " FATALEXIT", " FATALSRC", " ERROR", " FIRST_NAMED",
             // Boolean
             " I_CELLDEFINE", " I_COVERAGE", " I_TRACING", " I_LINT", " I_DEF_NETTYPE_WIRE",
             // Errors
             "DETECTARRAY", "ENCAPSULATED", "PORTSHORT", "UNSUPPORTED", "TASKNSVAR",
             // Warnings
             " EC_FIRST_WARN",
-            "ALWCOMBORDER", "ASSIGNDLY", "ASSIGNIN",
+            "ALWCOMBORDER", "ASSIGNDLY", "ASSIGNIN", "BADSTDPRAGMA",
             "BLKANDNBLK", "BLKLOOPINIT", "BLKSEQ", "BSSPACE",
             "CASEINCOMPLETE", "CASEOVERLAP", "CASEWITHX", "CASEX", "CASTCONST", "CDCRSTLOGIC", "CLKDATA",
             "CMPCONST", "COLONPLUS", "COMBDLY", "CONTASSREG",
@@ -166,9 +171,9 @@ public:
             "IMPERFECTSCH", "IMPLICIT", "IMPORTSTAR", "IMPURE",
             "INCABSPATH", "INFINITELOOP", "INITIALDLY", "INSECURE",
             "LATCH", "LITENDIAN", "MODDUP",
-            "MULTIDRIVEN", "MULTITOP","NOLATCH",
-            "PINMISSING", "PINNOCONNECT", "PINCONNECTEMPTY", "PKGNODECL", "PROCASSWIRE",
-            "RANDC", "REALCVT", "REDEFMACRO",
+            "MULTIDRIVEN", "MULTITOP","NOLATCH", "NULLPORT", "PINCONNECTEMPTY",
+            "PINMISSING", "PINNOCONNECT",  "PINNOTFOUND", "PKGNODECL", "PROCASSWIRE",
+            "PROTECTED", "RANDC", "REALCVT", "REDEFMACRO",
             "SELRANGE", "SHORTREAL", "SPLITVAR", "STMTDLY", "SYMRSVDWORD", "SYNCASYNCNET",
             "TICKCOUNT", "TIMESCALEMOD",
             "UNDRIVEN", "UNOPT", "UNOPTFLAT", "UNOPTTHREADS",
@@ -189,9 +194,9 @@ public:
     // Warnings we'll present to the user as errors
     // Later -Werror- options may make more of these.
     bool pretendError() const {
-        return (m_e == ASSIGNIN || m_e == BLKANDNBLK || m_e == BLKLOOPINIT || m_e == CONTASSREG
-                || m_e == IMPURE || m_e == PKGNODECL || m_e == PROCASSWIRE  //
-                || m_e == TIMESCALEMOD);  // Says IEEE
+        return (m_e == ASSIGNIN || m_e == BADSTDPRAGMA || m_e == BLKANDNBLK || m_e == BLKLOOPINIT
+                || m_e == CONTASSREG || m_e == IMPURE || m_e == PINNOTFOUND || m_e == PKGNODECL
+                || m_e == PROCASSWIRE);  // Says IEEE
     }
     // Warnings to mention manual
     bool mentionManual() const {
@@ -233,6 +238,7 @@ class V3Error final {
 
 private:
     static bool s_describedWarnings;  // Told user how to disable warns
+    static bool s_describedWeb;  // Told user to see web
     static std::array<bool, V3ErrorCode::_ENUM_MAX>
         s_describedEachWarn;  // Told user specifics about this warning
     static std::array<bool, V3ErrorCode::_ENUM_MAX>
