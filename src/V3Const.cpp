@@ -1881,6 +1881,13 @@ private:
     virtual void visit(AstConst*) override {}  // Already constant
 
     virtual void visit(AstCell* nodep) override {
+        if (VN_IS(nodep->modp(), NotFoundModule)) {
+            if (v3Global.opt.xmlOnly()
+                && v3Global.opt.xmlWriteNotFoundModuleInstancePorts()) {
+                return;
+            }
+        }
+
         if (m_params) {
             iterateAndNextNull(nodep->paramsp());
         } else {
